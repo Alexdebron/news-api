@@ -8,12 +8,12 @@ const PORT = process.env.PORT || 3000;
 // ===== Scrapers =====
 async function hirunews() {
   try {
-    const { data } = await axios.get("https://www.hirunews.lk/", { timeout: 8000 });
+    const { data } = await axios.get("https://www.hirunews.lk/", { timeout: 5000 });
     const $ = cheerio.load(data);
     const latestUrl = $(".card-v1").attr("href");
-    if (!latestUrl) throw new Error("Hiru latest URL not found");
+    if (!latestUrl) return { error: "Hiru latest URL not found" };
 
-    const latestGet = await axios.get(latestUrl, { timeout: 8000 });
+    const latestGet = await axios.get(latestUrl, { timeout: 5000 });
     const $2 = cheerio.load(latestGet.data);
 
     const title = $2(".head-title").text().trim() || "No title";
@@ -36,13 +36,13 @@ async function hirunews() {
 async function sirasanews() {
   try {
     const baseUrl = "https://sinhala.newsfirst.lk";
-    const { data } = await axios.get(`${baseUrl}/latest-news`, { timeout: 8000 });
+    const { data } = await axios.get(`${baseUrl}/latest-news`, { timeout: 5000 });
     const $ = cheerio.load(data);
     let latestUrl = $(".ng-star-inserted > div > div > a").attr("href");
-    if (!latestUrl) throw new Error("Sirasa latest URL not found");
+    if (!latestUrl) return { error: "Sirasa latest URL not found" };
     latestUrl = baseUrl + latestUrl;
 
-    const latestGet = await axios.get(latestUrl, { timeout: 8000 });
+    const latestGet = await axios.get(latestUrl, { timeout: 5000 });
     const $2 = cheerio.load(latestGet.data);
 
     const title = $2(".ng-star-inserted > h1").text().trim() || "No title";
@@ -65,13 +65,13 @@ async function sirasanews() {
 async function derananews() {
   try {
     const baseUrl = "https://sinhala.adaderana.lk/";
-    const { data } = await axios.get(baseUrl, { timeout: 8000 });
+    const { data } = await axios.get(baseUrl, { timeout: 5000 });
     const $ = cheerio.load(data);
     let latestUrl = $(".col-xs-12.col-sm-6.col-md-5 > div > div > h3 > a").attr("href");
-    if (!latestUrl) throw new Error("Derana latest URL not found");
+    if (!latestUrl) return { error: "Derana latest URL not found" };
     latestUrl = baseUrl + latestUrl;
 
-    const latestGet = await axios.get(latestUrl, { timeout: 8000 });
+    const latestGet = await axios.get(latestUrl, { timeout: 5000 });
     const $2 = cheerio.load(latestGet.data);
 
     const title = $2(".news-heading").text().trim() || "No title";
@@ -96,18 +96,33 @@ async function derananews() {
 
 // ===== API Endpoints =====
 app.get("/api/news/hiru", async (req, res) => {
-  const result = await hirunews();
-  res.json({ status: true, creator: "Chamod Nimsara", result });
+  try {
+    const result = await hirunews();
+    res.json({ status: true, creator: "Chamod Nimsara", result });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ status: false, creator: "Chamod Nimsara", error: e.message });
+  }
 });
 
 app.get("/api/news/sirasa", async (req, res) => {
-  const result = await sirasanews();
-  res.json({ status: true, creator: "Chamod Nimsara", result });
+  try {
+    const result = await sirasanews();
+    res.json({ status: true, creator: "Chamod Nimsara", result });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ status: false, creator: "Chamod Nimsara", error: e.message });
+  }
 });
 
 app.get("/api/news/derana", async (req, res) => {
-  const result = await derananews();
-  res.json({ status: true, creator: "Chamod Nimsara", result });
+  try {
+    const result = await derananews();
+    res.json({ status: true, creator: "Chamod Nimsara", result });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ status: false, creator: "Chamod Nimsara", error: e.message });
+  }
 });
 
 // ===== Start Server =====
